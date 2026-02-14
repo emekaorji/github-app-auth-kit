@@ -2,6 +2,8 @@ import crypto from 'node:crypto';
 
 import { toBase64UrlJson } from './utils';
 
+const GITHUB_API_BASE_URL = 'https://api.github.com';
+
 export function generateGitHubAppJwt(
   appId: number,
   privateKeyRaw: string
@@ -32,15 +34,66 @@ export function generateGitHubAppJwt(
   return `${signingInput}.${signature}`;
 }
 
-export async function createInstallationToken(
-  appId: number,
-  privateKeyRaw: string,
-  appInstallationId: string
-): Promise<string> {
+export async function resolveAppInstallationId({
+  owner,
+  repo,
+  appId,
+  privateKeyRaw,
+}: {
+  owner: string;
+  repo: string;
+  appId: number;
+  privateKeyRaw: string;
+}): Promise<number> {
   const appJwt = generateGitHubAppJwt(appId, privateKeyRaw);
+  const encodedOwner = encodeURIComponent(owner);
+  const encodedRepo = encodeURIComponent(repo);
+  const response = await fetch(
+    `${GITHUB_API_BASE_URL}/repos/${encodedOwner}/${encodedRepo}/installation`,
+    {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${appJwt}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(
+      `Failed to read installation for ${owner}/${repo} (${response.status}): ${message}`
+    );
+  }
+
+  const payload = (await response.json()) as { id?: number };
+  if (!payload?.id) {
+    throw new Error('GitHub response did not include an installation id.');
+  }
+
+  return payload.id;
+}
+
+export async function createAppInstallationAccessToken({
+  owner,
+  repo,
+  appId,
+  privateKeyRaw,
+}: {
+  owner: string;
+  repo: string;
+  appId: number;
+  privateKeyRaw: string;
+}): Promise<string> {
+  const appJwt = generateGitHubAppJwt(appId, privateKeyRaw);
+  const appInstallationId = await resolveAppInstallationId({
+    owner,
+    repo,
+    appId,
+    privateKeyRaw,
+  });
 
   const response = await fetch(
-    `https://api.github.com/app/installations/${appInstallationId}/access_tokens`,
+    `${GITHUB_API_BASE_URL}/app/installations/${appInstallationId}/access_tokens`,
     {
       method: 'POST',
       headers: {
