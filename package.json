@@ -1,0 +1,19 @@
+{
+  "name": "github-app-installation",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsup"
+  },
+  "keywords": [],
+  "author": "Emeka Orji",
+  "license": "ISC",
+  "packageManager": "pnpm@10.15.1",
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "tsup": "^8.5.1",
+    "typescript": "^5.8.2"
+  }
+}
