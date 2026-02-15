@@ -1,13 +1,29 @@
 {
-  "name": "github-app-installation",
+  "name": "github-app-auth-kit",
   "version": "0.0.1",
   "type": "module",
-  "description": "",
+  "description": "TypeScript helpers for GitHub App JWTs and installation access tokens.",
   "main": "dist/index.js",
-  "scripts": {
-    "build": "tsup"
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
-  "keywords": [],
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "github-app",
+    "installation-token",
+    "jwt",
+    "typescript"
+  ],
   "author": "Emeka Orji",
   "license": "ISC",
   "packageManager": "pnpm@10.15.1",
