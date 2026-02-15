@@ -6,7 +6,6 @@ export type {
   CreateAccessTokenOptions,
   GitHubRepoRef,
   InstallationTokenPermissions,
-  FetchLike,
 } from './types';
 
 export default GitHubAppAuth;
