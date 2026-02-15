@@ -80,6 +80,34 @@ describe('GitHubAppAuth', () => {
     vi.useRealTimers();
   });
 
+  it('supports configuring JWT expiration', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-01-01T00:00:00Z'));
+
+    const auth = new GitHubAppAuth({
+      appId: 123,
+      privateKey: createPrivateKey(),
+      jwtExpiresInSeconds: 10 * 60,
+      fetch: createFetchMock(),
+    });
+
+    const jwt = auth.createJwt();
+    const [, encodedPayload] = jwt.split('.');
+
+    const payload = JSON.parse(
+      Buffer.from(encodedPayload, 'base64url').toString('utf-8')
+    );
+
+    const now = Math.floor(Date.now() / 1000);
+    expect(payload).toMatchObject({
+      iss: 123,
+      iat: now - 60,
+      exp: now + 10 * 60,
+    });
+
+    vi.useRealTimers();
+  });
+
   it('requires owner and repo together when set on the constructor', () => {
     const privateKey = createPrivateKey();
 

@@ -6,6 +6,7 @@ import {
   normalizeOptionalNonEmptyString,
   parsePositiveInteger,
   parseOptionalInstallationId,
+  parseOptionalJwtExpiresInSeconds,
   resolveFetch,
   throwGitHubApiError,
 } from './utils';
@@ -22,6 +23,7 @@ import type {
  * Default GitHub REST API base URL.
  */
 const DEFAULT_GITHUB_API_BASE_URL = 'https://api.github.com';
+const DEFAULT_JWT_EXPIRES_IN_SECONDS = 9 * 60;
 
 /**
  * GitHub App authentication helper for creating JWTs and installation tokens.
@@ -52,6 +54,10 @@ export class GitHubAppAuth {
    */
   private readonly apiBaseUrl: string;
   /**
+   * JWT expiration window in seconds.
+   */
+  private readonly jwtExpiresInSeconds: number;
+  /**
    * Fetch implementation to use for API calls.
    */
   private readonly fetcher: FetchLike;
@@ -65,6 +71,7 @@ export class GitHubAppAuth {
     owner,
     repo,
     installationId,
+    jwtExpiresInSeconds,
     apiBaseUrl,
     fetch,
   }: GitHubAppAuthOptions) {
@@ -73,6 +80,9 @@ export class GitHubAppAuth {
     this.owner = normalizeOptionalNonEmptyString(owner, 'owner');
     this.repo = normalizeOptionalNonEmptyString(repo, 'repo');
     this.installationId = parseOptionalInstallationId(installationId);
+    this.jwtExpiresInSeconds =
+      parseOptionalJwtExpiresInSeconds(jwtExpiresInSeconds) ??
+      DEFAULT_JWT_EXPIRES_IN_SECONDS;
     this.apiBaseUrl =
       normalizeOptionalNonEmptyString(apiBaseUrl, 'apiBaseUrl') ??
       DEFAULT_GITHUB_API_BASE_URL;
@@ -93,7 +103,7 @@ export class GitHubAppAuth {
     const now = Math.floor(Date.now() / 1000);
     const payload = {
       iat: now - 60,
-      exp: now + 9 * 60,
+      exp: now + this.jwtExpiresInSeconds,
       iss: this.appId,
     };
 

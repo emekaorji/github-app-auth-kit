@@ -79,6 +79,28 @@ export function parseOptionalInstallationId(
 }
 
 /**
+ * Parses an optional JWT expiration window (in seconds).
+ * GitHub requires JWTs to expire within 10 minutes.
+ */
+export function parseOptionalJwtExpiresInSeconds(
+  value: number | undefined
+): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error('`jwtExpiresInSeconds` must be a positive integer.');
+  }
+
+  if (value > 10 * 60) {
+    throw new Error('`jwtExpiresInSeconds` cannot exceed 600 seconds.');
+  }
+
+  return value;
+}
+
+/**
  * Resolves a fetch implementation, preferring the passed override.
  * Throws a helpful error when fetch is unavailable.
  */

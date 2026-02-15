@@ -68,6 +68,10 @@ export type GitHubAppAuthOptions = {
    */
   installationId?: number | string;
   /**
+   * JWT expiration window in seconds (max 600).
+   */
+  jwtExpiresInSeconds?: number;
+  /**
    * Override the GitHub REST API base URL (useful for GitHub Enterprise).
    */
   apiBaseUrl?: string;
