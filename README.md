@@ -205,9 +205,10 @@ CI runs on pull requests and on pushes to `main`:
 - `pnpm typecheck`
 - `pnpm test`
 
-Releases are automated with Changesets and npm Trusted Publishing:
-- Merge a PR to `main` that includes a Changeset file.
-- The release workflow versions the package, publishes to npm via OIDC, and creates a GitHub Release.
+Releases are automated with npm Trusted Publishing:
+- Run `pnpm bump -- <patch|minor|major>` to bump `package.json` and update `CHANGELOG.md`.
+- Commit those changes in the PR.
+- After the PR is merged to `main`, the release workflow publishes to npm via OIDC and creates a GitHub Release.
 
 Trusted Publishing notes:
 - No `NPM_TOKEN` is required.
