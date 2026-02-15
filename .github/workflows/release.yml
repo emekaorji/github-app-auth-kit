@@ -61,6 +61,8 @@ jobs:
         run: npm publish --provenance
         env:
           NPM_CONFIG_PROVENANCE: true
+          NODE_AUTH_TOKEN: ""
+          NPM_TOKEN: ""
 
       - name: Create GitHub Release
         if: steps.npm.outputs.should_publish == 'true'
