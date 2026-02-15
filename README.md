@@ -196,6 +196,23 @@ All network errors and non-2xx GitHub API responses throw descriptive errors tha
 - Other runtimes: pass a `fetch` implementation in the constructor
 - CommonJS consumers can use `require('github-app-auth-kit')`
 
+## CI/CD and releases
+
+This repository uses GitHub Actions for CI and automated releases.
+
+CI runs on pull requests and on pushes to `main`:
+- `pnpm build`
+- `pnpm typecheck`
+- `pnpm test`
+
+Releases are automated with Changesets and npm Trusted Publishing:
+- Merge a PR to `main` that includes a Changeset file.
+- The release workflow versions the package, publishes to npm via OIDC, and creates a GitHub Release.
+
+Trusted Publishing notes:
+- No `NPM_TOKEN` is required.
+- The GitHub Actions workflow uses OIDC (`id-token: write`) to publish.
+
 ## Troubleshooting
 
 - If you see "`fetch` is not available in this runtime", pass a `fetch` implementation.

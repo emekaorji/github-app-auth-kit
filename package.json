@@ -18,6 +18,8 @@
   ],
   "scripts": {
     "build": "tsup",
+    "changeset": "changeset",
+    "release": "changeset publish",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
@@ -31,6 +33,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.15.1",
   "devDependencies": {
+    "@changesets/cli": "^2.29.8",
     "@types/node": "^22.13.10",
     "tsup": "^8.5.1",
     "typescript": "^5.8.2",
