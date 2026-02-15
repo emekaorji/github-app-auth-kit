@@ -150,19 +150,20 @@ const token = await auth.createAccessToken();
 
 ### `new GitHubAppAuth(options)`
 
-| Option           | Type               | Required | Description                                       |
-| ---------------- | ------------------ | -------- | ------------------------------------------------- |
-| `appId`          | `number \| string` | Yes      | GitHub App id.                                    |
-| `privateKey`     | `string`           | Yes      | PEM private key (supports `\n` escaped newlines). |
-| `owner`          | `string`           | No       | Default repository owner.                         |
-| `repo`           | `string`           | No       | Default repository name.                          |
-| `installationId` | `number \| string` | No       | Default installation id for tokens.               |
-| `apiBaseUrl`     | `string`           | No       | Override REST API base URL (GitHub Enterprise).   |
-| `fetch`          | `typeof fetch`     | No       | Provide `fetch` for non-standard runtimes.        |
+| Option                | Type               | Required | Description                                              |
+| --------------------- | ------------------ | -------- | -------------------------------------------------------- |
+| `appId`               | `number \| string` | Yes      | GitHub App id.                                           |
+| `privateKey`          | `string`           | Yes      | PEM private key (supports `\n` escaped newlines).        |
+| `owner`               | `string`           | No       | Default repository owner.                                |
+| `repo`                | `string`           | No       | Default repository name.                                 |
+| `installationId`      | `number \| string` | No       | Default installation id for tokens.                      |
+| `jwtExpiresInSeconds` | `number`           | No       | JWT expiration window (seconds, max 1200).               |
+| `apiBaseUrl`          | `string`           | No       | Override REST API base URL (GitHub Enterprise).          |
+| `fetch`               | `typeof fetch`     | No       | Provide `fetch` for non-standard runtimes.               |
 
 ### `auth.createJwt()`
 
-Returns a short-lived GitHub App JWT. JWTs are valid for 10 minutes maximum; this library issues 9-minute tokens with a 60-second clock skew.
+Returns a short-lived GitHub App JWT. JWTs are valid for 10 minutes maximum; this library issues 9-minute tokens with a 60-second clock skew unless `jwtExpiresInSeconds` is set.
 
 ### `auth.resolveInstallationId({ owner, repo })`
 
