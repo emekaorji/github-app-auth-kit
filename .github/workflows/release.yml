@@ -35,6 +35,9 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Typecheck
+        run: pnpm typecheck
+
       - name: Test
         run: pnpm test
 
@@ -52,6 +55,10 @@ jobs:
         if: steps.changesets.outputs.published == 'true'
         run: |
           VERSION=$(node -p "require('./package.json').version")
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "Release v${VERSION} already exists. Skipping."
+            exit 0
+          fi
           gh release create "v${VERSION}" --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
