@@ -33,7 +33,7 @@
     "typescript"
   ],
   "author": "Emeka Orji",
-  "license": "ISC",
+  "license": "MIT",
   "packageManager": "pnpm@10.15.1",
   "devDependencies": {
     "@types/node": "^22.13.10",
