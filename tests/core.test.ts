@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, type MockedFunction } from 'vitest';
 import { generateKeyPairSync } from 'node:crypto';
 
-import { GitHubAppAuth } from '../src/index';
+import { GitHubAppAuth } from '../src/core';
 
 type MockResponseOptions = {
   status: number;
@@ -22,9 +22,11 @@ const createMockResponse = ({
     statusText,
     json: async () => json,
     text: async () => (text ?? JSON.stringify(json)) || '',
-  }) as Response;
+  } as Response);
 
-const createFetchMock = (...responses: Response[]): MockedFunction<typeof fetch> => {
+const createFetchMock = (
+  ...responses: Response[]
+): MockedFunction<typeof fetch> => {
   let index = 0;
   return vi.fn(async () => {
     const response = responses[index];
@@ -197,7 +199,9 @@ describe('GitHubAppAuth', () => {
     expect(token).toBe('token-123');
 
     const [url, init] = fetchMock.mock.calls[0] ?? [];
-    expect(url).toBe('https://api.github.com/app/installations/42/access_tokens');
+    expect(url).toBe(
+      'https://api.github.com/app/installations/42/access_tokens'
+    );
     expect(init?.method).toBe('POST');
     expect((init?.headers as Record<string, string>)?.Authorization).toMatch(
       /^Bearer .+\..+\..+$/
