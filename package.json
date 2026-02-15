@@ -1,6 +1,6 @@
 {
   "name": "github-app-auth-kit",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "description": "TypeScript helpers for GitHub App JWTs and installation access tokens.",
   "main": "dist/index.js",
