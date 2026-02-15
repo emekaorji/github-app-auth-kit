@@ -68,7 +68,7 @@ export type GitHubAppAuthOptions = {
    */
   installationId?: number | string;
   /**
-   * JWT expiration window in seconds (max 600).
+   * JWT expiration window in seconds (max 1200).
    */
   jwtExpiresInSeconds?: number;
   /**

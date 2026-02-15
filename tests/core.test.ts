@@ -87,7 +87,7 @@ describe('GitHubAppAuth', () => {
     const auth = new GitHubAppAuth({
       appId: 123,
       privateKey: createPrivateKey(),
-      jwtExpiresInSeconds: 10 * 60,
+      jwtExpiresInSeconds: 20 * 60,
       fetch: createFetchMock(),
     });
 
@@ -102,7 +102,7 @@ describe('GitHubAppAuth', () => {
     expect(payload).toMatchObject({
       iss: 123,
       iat: now - 60,
-      exp: now + 10 * 60,
+      exp: now + 20 * 60,
     });
 
     vi.useRealTimers();

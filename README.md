@@ -157,7 +157,7 @@ const token = await auth.createAccessToken();
 | `owner`               | `string`           | No       | Default repository owner.                                |
 | `repo`                | `string`           | No       | Default repository name.                                 |
 | `installationId`      | `number \| string` | No       | Default installation id for tokens.                      |
-| `jwtExpiresInSeconds` | `number`           | No       | JWT expiration window (seconds, max 600).                |
+| `jwtExpiresInSeconds` | `number`           | No       | JWT expiration window (seconds, max 1200).               |
 | `apiBaseUrl`          | `string`           | No       | Override REST API base URL (GitHub Enterprise).          |
 | `fetch`               | `typeof fetch`     | No       | Provide `fetch` for non-standard runtimes.               |
 
