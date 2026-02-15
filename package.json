@@ -16,7 +16,8 @@
   ],
   "scripts": {
     "build": "tsup",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "keywords": [
     "github-app",
@@ -30,6 +31,7 @@
   "devDependencies": {
     "@types/node": "^22.13.10",
     "tsup": "^8.5.1",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitest": "^2.1.9"
   }
 }

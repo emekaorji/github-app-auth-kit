@@ -6,6 +6,7 @@ import {
   normalizeOptionalNonEmptyString,
   parsePositiveInteger,
   parseOptionalInstallationId,
+  resolveFetch,
   throwGitHubApiError,
 } from './utils';
 import type {
@@ -14,31 +15,69 @@ import type {
   InstallationIdResponse,
   AccessTokenResponse,
   CreateAccessTokenOptions,
+  FetchLike,
 } from './types';
 
+/**
+ * Default GitHub REST API base URL.
+ */
 const DEFAULT_GITHUB_API_BASE_URL = 'https://api.github.com';
 
+/**
+ * GitHub App authentication helper for creating JWTs and installation tokens.
+ */
 export class GitHubAppAuth {
+  /**
+   * Numeric GitHub App id.
+   */
   private readonly appId: number;
+  /**
+   * Normalized PEM private key for signing JWTs.
+   */
   private readonly privateKey: string;
+  /**
+   * Default repository owner.
+   */
   private readonly owner: string | undefined;
+  /**
+   * Default repository name.
+   */
   private readonly repo: string | undefined;
-  private readonly installationId: number | string | undefined;
+  /**
+   * Default installation id.
+   */
+  private readonly installationId: number | undefined;
+  /**
+   * Base URL for the GitHub REST API. Defaults to `https://api.github.com`.
+   */
+  private readonly apiBaseUrl: string;
+  /**
+   * Fetch implementation to use for API calls.
+   */
+  private readonly fetcher: FetchLike;
 
-  private readonly appJwt = this.createJwt();
-
+  /**
+   * Creates a new GitHub App authentication client.
+   */
   constructor({
     appId,
     privateKey,
     owner,
     repo,
     installationId,
+    apiBaseUrl,
+    fetch,
   }: GitHubAppAuthOptions) {
     this.appId = parsePositiveInteger(appId, 'appId');
     this.privateKey = normalizePrivateKey(privateKey);
     this.owner = normalizeOptionalNonEmptyString(owner, 'owner');
     this.repo = normalizeOptionalNonEmptyString(repo, 'repo');
     this.installationId = parseOptionalInstallationId(installationId);
+    this.apiBaseUrl =
+      normalizeOptionalNonEmptyString(apiBaseUrl, 'apiBaseUrl') ??
+      DEFAULT_GITHUB_API_BASE_URL;
+    this.apiBaseUrl = this.apiBaseUrl.replace(/\/+$/, '');
+    this.fetcher = resolveFetch(fetch);
 
     if ((this.owner && !this.repo) || (!this.owner && this.repo)) {
       throw new Error(
@@ -47,6 +86,9 @@ export class GitHubAppAuth {
     }
   }
 
+  /**
+   * Creates a short-lived GitHub App JWT.
+   */
   createJwt(): string {
     const now = Math.floor(Date.now() / 1000);
     const payload = {
@@ -72,6 +114,9 @@ export class GitHubAppAuth {
     return `${signingInput}.${signature}`;
   }
 
+  /**
+   * Resolves the installation id for a repository.
+   */
   async resolveInstallationId({
     owner,
     repo,
@@ -85,15 +130,25 @@ export class GitHubAppAuth {
       );
     }
 
-    const response = await fetch(
-      `${DEFAULT_GITHUB_API_BASE_URL}/repos/${_owner}/${_repo}/installation`,
-      {
-        headers: {
-          Accept: 'application/vnd.github+json',
-          Authorization: `Bearer ${this.appJwt}`,
-        },
-      }
-    );
+    const appJwt = this.createJwt();
+    let response: Response;
+    try {
+      response = await this.fetcher(
+        `${this.apiBaseUrl}/repos/${_owner}/${_repo}/installation`,
+        {
+          headers: {
+            Accept: 'application/vnd.github+json',
+            Authorization: `Bearer ${appJwt}`,
+            'X-GitHub-Api-Version': '2022-11-28',
+          },
+        }
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `Failed to read installation for ${_owner}/${_repo}: ${message}`
+      );
+    }
 
     if (!response.ok) {
       return throwGitHubApiError(
@@ -110,6 +165,9 @@ export class GitHubAppAuth {
     return payload.id;
   }
 
+  /**
+   * Creates an installation access token.
+   */
   async createAccessToken({
     owner,
     repo,
@@ -118,20 +176,25 @@ export class GitHubAppAuth {
     repositories,
     repositoryIds,
   }: CreateAccessTokenOptions = {}): Promise<string> {
-    const _owner = owner ?? this.owner;
-    const _repo = repo ?? this.repo;
-
-    if (!_owner || !_repo) {
-      throw new Error(
-        'Missing repository target. Provide both `owner` and `repo` in the constructor or method call.'
-      );
-    }
-
-    const _installationId = parseOptionalInstallationId(
-      installationId ||
-        this.installationId ||
-        (await this.resolveInstallationId({ owner: _owner, repo: _repo }))
+    let _installationId = parseOptionalInstallationId(
+      installationId ?? this.installationId
     );
+
+    if (!_installationId) {
+      const _owner = owner ?? this.owner;
+      const _repo = repo ?? this.repo;
+
+      if (!_owner || !_repo) {
+        throw new Error(
+          'Missing repository target. Provide both `owner` and `repo` in the constructor or method call.'
+        );
+      }
+
+      _installationId = await this.resolveInstallationId({
+        owner: _owner,
+        repo: _repo,
+      });
+    }
 
     const body = JSON.stringify({
       permissions,
@@ -140,24 +203,32 @@ export class GitHubAppAuth {
     });
     const headers: Record<string, string> = {
       Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${this.appJwt}`,
+      Authorization: `Bearer ${this.createJwt()}`,
       'X-GitHub-Api-Version': '2022-11-28',
       'Content-Type': 'application/json',
     };
 
-    const response = await fetch(
-      `${DEFAULT_GITHUB_API_BASE_URL}/app/installations/${_installationId}/access_tokens`,
-      {
-        method: 'POST',
-        headers,
-        body,
-      }
-    );
+    let response: Response;
+    try {
+      response = await this.fetcher(
+        `${this.apiBaseUrl}/app/installations/${_installationId}/access_tokens`,
+        {
+          method: 'POST',
+          headers,
+          body,
+        }
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `Failed to create installation access token for installation ${_installationId}: ${message}`
+      );
+    }
 
     if (!response.ok) {
       return throwGitHubApiError(
         response,
-        `Failed to create installation access token for installation ${installationId}`
+        `Failed to create installation access token for installation ${_installationId}`
       );
     }
 
@@ -169,6 +240,9 @@ export class GitHubAppAuth {
     return payload.token;
   }
 
+  /**
+   * Convenience one-call API for creating installation access tokens.
+   */
   static async createAccessToken(
     options: GitHubAppAuthOptions & CreateAccessTokenOptions
   ): Promise<string> {
