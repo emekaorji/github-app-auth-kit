@@ -3,6 +3,10 @@
   "version": "0.0.6",
   "type": "module",
   "description": "TypeScript helpers for GitHub App JWTs and installation access tokens.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/emekaorji/github-app-auth-kit"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
