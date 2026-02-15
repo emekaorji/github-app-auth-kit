@@ -8,6 +8,7 @@ Use it to:
 - resolve installation IDs from `owner/repo`
 - create installation access tokens
 - work in Node, edge runtimes, and GitHub Enterprise
+- ship in both ESM and CommonJS projects
 
 ## Why this library
 
@@ -98,6 +99,22 @@ const token = await GitHubAppAuth.createAccessToken({
 });
 ```
 
+### CommonJS usage
+
+```js
+const { GitHubAppAuth } = require('github-app-auth-kit');
+
+const auth = new GitHubAppAuth({
+  appId: process.env.GITHUB_APP_ID,
+  privateKey: process.env.GITHUB_PRIVATE_KEY,
+  installationId: 12345678,
+});
+
+auth.createAccessToken().then((token) => {
+  console.log(token);
+});
+```
+
 ### GitHub Enterprise
 
 ```ts
@@ -177,6 +194,7 @@ All network errors and non-2xx GitHub API responses throw descriptive errors tha
 
 - Node.js 18+ (native `fetch`)
 - Other runtimes: pass a `fetch` implementation in the constructor
+- CommonJS consumers can use `require('github-app-auth-kit')`
 
 ## Troubleshooting
 
